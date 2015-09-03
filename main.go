@@ -13,8 +13,6 @@ import (
 	"os"
 )
 
-var problemReport = flag.String("path", "", "Path to problem report")
-
 // reader is an io.Reader that can read base64 compressed data stored as lines
 // prefixed with a whitespace
 type reader struct {
@@ -31,8 +29,8 @@ type formatReader struct {
 
 func init() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		flag.PrintDefaults()
+		fmt.Fprintf(os.Stderr, "Usage of %s:\n\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "$ apport-core-unpacker <path/to/problem/report>\n\n")
 		fmt.Fprintf(os.Stderr, "Extracted core dump is saved as CoreDump.core.\n")
 	}
 }
@@ -40,18 +38,20 @@ func init() {
 func main() {
 	flag.Parse()
 
-	if *problemReport == "" {
+	if flag.NArg() < 1 {
 		flag.Usage()
 		os.Exit(1)
 	}
+
+	problemReport := flag.Arg(0)
 
 	var f *os.File
 	var err error
 	var r io.ReadCloser
 	var data []byte
 
-	if f, err = os.OpenFile(*problemReport, os.O_RDONLY, 0666); err != nil {
-		log.Fatalf(`unable to open "%s": %s`, *problemReport, err)
+	if f, err = os.OpenFile(problemReport, os.O_RDONLY, 0666); err != nil {
+		log.Fatalf(`unable to open "%s": %s`, problemReport, err)
 	}
 
 	rdr := bufio.NewReader(f)
